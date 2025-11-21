@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 from langchain_openai import AzureChatOpenAI
-from langchain_core.prompts import ChatPromptTemplate
+from typing import Optional
 from langchain.agents import create_agent
 from langchain_openai import AzureChatOpenAI
 from langchain.agents.structured_output import ToolStrategy
@@ -114,8 +114,8 @@ travel_data = [
 ]
 
 class TravelDataInput(BaseModel):
-    source: str = Field("Source city in lower case", examples=['kolkata', 'mumbai'])
-    dest: str = Field("Destination city in lower case", examples=['kolkata', 'mumbai'])
+    source: Optional[str] = Field(description="Source city in lower case", default = "", examples=['kolkata', 'mumbai'])
+    dest: Optional[str] = Field(description="Destination city in lower case", default="", examples=['kolkata', 'mumbai'])
 
 class AgentOutput(BaseModel):
     answer: str
@@ -127,23 +127,24 @@ def get_current_date() -> str:
     return date.strftime('%d/%m/%y')
 
 
-@tool(name_or_callable='Trip_Details', description="Returns flight trip details, if given proper source and destination city", args_schema=TravelDataInput)
+@tool(name_or_callable='Trip_Details', description="Returns flight trip details, if given proper source and destination city, if source is not present use '', if dest is not present use: '', but always call this tool to get flight details.", args_schema=TravelDataInput)
 def get_trip_details(source: str, dest: str) -> str:
     trips = []
-    
-    for trip in travel_data:
-        if trip['source'] == source and trip['dest'] == dest:
-            trips.append(trip)
-            
-    return trips
 
-@tool(name_or_callable='Trip_Details_From_Source_City', description="Returns flight trip details from the specified Source city")
-def get_trip_details_from_source(source: str) -> str:
-    trips = []
-    
-    for trip in travel_data:
-        if trip['source'] == source:
-            trips.append(trip)
+    if source and dest:
+        for trip in travel_data:
+            if trip['source'] == source and trip['dest'] == dest:
+                trips.append(trip)
+    elif source:
+        for trip in travel_data:
+            if trip['source'] == source:
+                trips.append(trip)
+    elif dest:
+        for trip in travel_data:
+            if trip['dest'] == dest:
+                trips.append(trip)
+    else:
+        travel_data
             
     return trips
 
@@ -163,9 +164,9 @@ messages = [
 
         Analyze and Extract: Carefully analyze the user's request to precisely determine the following four mandatory parameters:
 
-        Departure Location (Source)
+        Departure Location (Source, if not specified, use '' to call the tool)
 
-        Arrival Location (Destination)
+        Arrival Location (Destination, if not specified use '' to call the tool)
 
         Travel Date(s) (Must account for one-way, round-trip, or multi-city requests)
 
@@ -188,7 +189,7 @@ messages = [
 
 agent = create_agent(
     model=llm,
-    tools=[get_current_date, get_trip_details, get_trip_details_from_source],
+    tools=[get_current_date, get_trip_details],
     response_format=ToolStrategy(AgentOutput)
 )
 
