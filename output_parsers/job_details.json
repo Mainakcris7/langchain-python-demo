@@ -1,0 +1,17 @@
+{
+    "title": "Software Engineer",
+    "experience_required": "3-5 years",
+    "description": "We are looking for a talented Software Engineer to join our team to develop and maintain web applications using Python and Django. Responsibilities include collaborating with front-end developers, ensuring performance, quality, and responsiveness of applications, fixing bugs, and maintaining code quality and automation.",
+    "requirements": [
+        "Python",
+        "Django",
+        "REST APIs",
+        "Front-end technologies",
+        "GenAI",
+        "Langchain",
+        "Langgraph",
+        "RAG"
+    ],
+    "location": "Bangalore, Karnataka, India",
+    "salary_range": "10-12 LPA"
+}
